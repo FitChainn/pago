@@ -50,16 +50,6 @@ public class PagoController {
         return ResponseEntity.ok(pagoService.actualizar(id, requestDTO));
     }
 
-    @PatchMapping("/{id}/confirmar")
-    public ResponseEntity<PagoResponseDTO> confirmar(@PathVariable Long id) {
-        return ResponseEntity.ok(pagoService.confirmar(id));
-    }
-
-    @PatchMapping("/{id}/cancelar")
-    public ResponseEntity<PagoResponseDTO> cancelar(@PathVariable Long id) {
-        return ResponseEntity.ok(pagoService.cancelar(id));
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         pagoService.eliminar(id);

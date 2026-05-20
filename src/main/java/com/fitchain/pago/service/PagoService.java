@@ -95,28 +95,6 @@ public class PagoService {
         return toResponseDTO(actualizado, cliente);
     }
 
-    public PagoResponseDTO confirmar(Long id) {
-        log.info("Confirmando pago con id {}", id);
-        Pago pago = pagoRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Pago con id " + id + " no encontrado"));
-
-        pago.setEstado("PAGADO");
-        Pago confirmado = pagoRepository.save(pago);
-        log.info("Pago {} confirmado", id);
-        return toResponseDTO(confirmado, clienteClient.obtenerClientePorId(confirmado.getClienteId()));
-    }
-
-    public PagoResponseDTO cancelar(Long id) {
-        log.info("Cancelando pago con id {}", id);
-        Pago pago = pagoRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Pago con id " + id + " no encontrado"));
-
-        pago.setEstado("CANCELADO");
-        Pago cancelado = pagoRepository.save(pago);
-        log.info("Pago {} cancelado", id);
-        return toResponseDTO(cancelado, clienteClient.obtenerClientePorId(cancelado.getClienteId()));
-    }
-
     public void eliminar(Long id) {
         log.info("Eliminando pago con id {}", id);
         if (!pagoRepository.existsById(id)) {
