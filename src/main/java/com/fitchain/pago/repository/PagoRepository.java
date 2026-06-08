@@ -6,12 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface PagoRepository extends JpaRepository<Pago, Long> {
 
     List<Pago> findByClienteId(Long clienteId);
 
     List<Pago> findByEstado(String estado);
 
-    List<Pago> findByClienteIdAndEstado(Long clienteId, String estado);
+    List<Pago> findByClienteIdAndEstado(Long clienteId, String estado); //no se usaa
 }
