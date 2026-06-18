@@ -33,7 +33,7 @@ public class PagoService {
     }
 
     public PagoResponseDTO crear(PagoRequestDTO requestDTO) {
-        log.info("Creando pago para clienteId {}", requestDTO.getClienteId());
+        log.info("CREANDO PAGO PARA clienteId={}", requestDTO.getClienteId());
 
         ClienteDTO cliente = clienteClient.obtenerClientePorId(requestDTO.getClienteId());
 
@@ -45,26 +45,26 @@ public class PagoService {
         pago.setEstado("PENDIENTE");
 
         Pago guardado = pagoRepository.save(pago);
-        log.info("Pago creado con id {}", guardado.getId());
+        log.info("PAGO CREADO CON ID: {}", guardado.getId());
         return toResponseDTO(guardado, cliente);
     }
 
     public List<PagoResponseDTO> obtenerTodos() {
-        log.info("Obteniendo todos los pagos");
+        log.info("OBTENIENDO TODOS LOS PAGOS");
         return pagoRepository.findAll().stream()
                 .map(p -> toResponseDTO(p, clienteClient.obtenerClientePorId(p.getClienteId())))
                 .toList();
     }
 
     public PagoResponseDTO obtenerPorId(Long id) {
-        log.info("Buscando pago con id {}", id);
+        log.info("BUSCANDO PAGO CON ID: {}", id);
         Pago pago = pagoRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Pago con id " + id + " no encontrado"));
         return toResponseDTO(pago, clienteClient.obtenerClientePorId(pago.getClienteId()));
     }
 
     public List<PagoResponseDTO> obtenerPorCliente(Long clienteId) {
-        log.info("Buscando pagos del cliente {}", clienteId);
+        log.info("BUSCANDO PAGOS DEL CLIENTE {}", clienteId);
         ClienteDTO cliente = clienteClient.obtenerClientePorId(clienteId);
         return pagoRepository.findByClienteId(clienteId).stream()
                 .map(p -> toResponseDTO(p, cliente))
@@ -72,14 +72,14 @@ public class PagoService {
     }
 
     public List<PagoResponseDTO> obtenerPorEstado(String estado) {
-        log.info("Buscando pagos con estado {}", estado);
+        log.info("BUSCANDO PAGOS CON ESTADO {}", estado);
         return pagoRepository.findByEstado(estado).stream()
                 .map(p -> toResponseDTO(p, clienteClient.obtenerClientePorId(p.getClienteId())))
                 .toList();
     }
 
     public PagoResponseDTO actualizar(Long id, PagoRequestDTO requestDTO) {
-        log.info("Actualizando pago con id {}", id);
+        log.info("ACTUALIZANDO PAGO CON ID: {}", id);
         Pago pago = pagoRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Pago con id " + id + " no encontrado"));
 
@@ -91,16 +91,16 @@ public class PagoService {
         pago.setFechaPago(requestDTO.getFechaPago());
 
         Pago actualizado = pagoRepository.save(pago);
-        log.info("Pago {} actualizado correctamente", id);
+        log.info("PAGO CON ID {} ACTUALIZADO CORRECTAMENTE", id);
         return toResponseDTO(actualizado, cliente);
     }
 
     public void eliminar(Long id) {
-        log.info("Eliminando pago con id {}", id);
+        log.info("ELIMINANDO PAGO CON ID: {}", id);
         if (!pagoRepository.existsById(id)) {
             throw new NoSuchElementException("Pago con id " + id + " no encontrado");
         }
         pagoRepository.deleteById(id);
-        log.info("Pago {} eliminado", id);
+        log.info("PAGO CON ID {} ELIMINADO EXITOSAMENTE", id);
     }
 }
