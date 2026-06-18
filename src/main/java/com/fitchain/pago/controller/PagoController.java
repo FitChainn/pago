@@ -1,6 +1,5 @@
 package com.fitchain.pago.controller;
 
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import com.fitchain.pago.assembler.PagoModelAssembler;
 import com.fitchain.pago.dto.PagoRequestDTO;
 import com.fitchain.pago.dto.PagoResponseDTO;
@@ -10,7 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -25,10 +24,10 @@ import java.util.stream.Collectors;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+@Slf4j
 @Tag(name = "PAGOS", description = "GESTIÓN DE PAGOS")
 @RestController
 @RequestMapping("/v1/pagos")
-
 public class PagoController {
 
     @Autowired
@@ -46,6 +45,7 @@ public class PagoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
     @PostMapping
     public ResponseEntity<EntityModel<PagoResponseDTO>> crear(@Valid @RequestBody PagoRequestDTO requestDTO) {
+        log.info("POST /v1/pagos - CREAR PAGO clienteId={}", requestDTO.getClienteId());
         PagoResponseDTO creado = pagoService.crear(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(assembler.toModel(creado));
     }
@@ -58,6 +58,7 @@ public class PagoController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<CollectionModel<EntityModel<PagoResponseDTO>>> obtenerTodos() {
+        log.info("GET /v1/pagos - LISTAR TODOS");
         List<EntityModel<PagoResponseDTO>> pagos = pagoService.obtenerTodos().stream()
                 .map(assembler::toModel)
                 .collect(Collectors.toList());
@@ -74,6 +75,7 @@ public class PagoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<PagoResponseDTO>> obtenerPorId(@PathVariable Long id) {
+        log.info("GET /v1/pagos/{} - BUSCAR POR ID", id);
         return ResponseEntity.ok(assembler.toModel(pagoService.obtenerPorId(id)));
     }
 
@@ -85,6 +87,7 @@ public class PagoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<CollectionModel<EntityModel<PagoResponseDTO>>> obtenerPorCliente(@PathVariable Long clienteId) {
+        log.info("GET /v1/pagos/cliente/{} - BUSCAR POR CLIENTE", clienteId);
         List<EntityModel<PagoResponseDTO>> pagos = pagoService.obtenerPorCliente(clienteId).stream()
                 .map(assembler::toModel)
                 .collect(Collectors.toList());
@@ -101,6 +104,7 @@ public class PagoController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/estado/{estado}")
     public ResponseEntity<CollectionModel<EntityModel<PagoResponseDTO>>> obtenerPorEstado(@PathVariable String estado) {
+        log.info("GET /v1/pagos/estado/{} - BUSCAR POR ESTADO", estado);
         List<EntityModel<PagoResponseDTO>> pagos = pagoService.obtenerPorEstado(estado).stream()
                 .map(assembler::toModel)
                 .collect(Collectors.toList());
@@ -120,6 +124,7 @@ public class PagoController {
     public ResponseEntity<EntityModel<PagoResponseDTO>> actualizar(
             @PathVariable Long id,
             @Valid @RequestBody PagoRequestDTO requestDTO) {
+        log.info("PUT /v1/pagos/{} - ACTUALIZAR PAGO", id);
         return ResponseEntity.ok(assembler.toModel(pagoService.actualizar(id, requestDTO)));
     }
 
@@ -131,6 +136,7 @@ public class PagoController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        log.info("DELETE /v1/pagos/{} - ELIMINAR PAGO", id);
         pagoService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
