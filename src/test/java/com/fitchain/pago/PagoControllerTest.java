@@ -1,5 +1,6 @@
 package com.fitchain.pago;
 
+import com.fitchain.pago.assembler.PagoModelAssembler;
 import com.fitchain.pago.config.SecurityConfig;
 import com.fitchain.pago.controller.PagoController;
 import com.fitchain.pago.dto.PagoRequestDTO;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PagoController.class)
-@Import({SecurityConfig.class, RolHeaderFilter.class})
+@Import({SecurityConfig.class, RolHeaderFilter.class, PagoModelAssembler.class})
 public class PagoControllerTest {
 
     @Autowired
@@ -78,7 +79,7 @@ public class PagoControllerTest {
         mockMvc.perform(get("/v1/pagos")
                         .header("X-User-Rol", "ADMIN"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(jsonPath("$._embedded.pagoResponseDTOList.length()").value(1));
     }
 
     @Test

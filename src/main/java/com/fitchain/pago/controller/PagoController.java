@@ -1,5 +1,7 @@
 package com.fitchain.pago.controller;
 
+import com.fasterxml.jackson.databind.annotation.JsonAppend;
+import com.fitchain.pago.assembler.PagoModelAssembler;
 import com.fitchain.pago.dto.PagoRequestDTO;
 import com.fitchain.pago.dto.PagoResponseDTO;
 import com.fitchain.pago.service.PagoService;
@@ -9,20 +11,30 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Tag(name = "PAGOS", description = "GESTIÓN DE PAGOS")
 @RestController
 @RequestMapping("/v1/pagos")
-@RequiredArgsConstructor
+
 public class PagoController {
 
-    private final PagoService pagoService;
+    @Autowired
+    private PagoService pagoService;
+    @Autowired
+    private PagoModelAssembler assembler;
 
     @Operation(summary = "CREAR PAGO", description = "Crea un nuevo pago. Acceso: ADMIN, CLIENTE")
     @ApiResponses({
@@ -33,8 +45,9 @@ public class PagoController {
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
     @PostMapping
-    public ResponseEntity<PagoResponseDTO> crear(@Valid @RequestBody PagoRequestDTO requestDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(pagoService.crear(requestDTO));
+    public ResponseEntity<EntityModel<PagoResponseDTO>> crear(@Valid @RequestBody PagoRequestDTO requestDTO) {
+        PagoResponseDTO creado = pagoService.crear(requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(assembler.toModel(creado));
     }
 
     @Operation(summary = "OBTENER TODOS LOS PAGOS", description = "Retorna la lista de todos los pagos. Acceso: ADMIN")
@@ -44,8 +57,13 @@ public class PagoController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<PagoResponseDTO>> obtenerTodos() {
-        return ResponseEntity.ok(pagoService.obtenerTodos());
+    public ResponseEntity<CollectionModel<EntityModel<PagoResponseDTO>>> obtenerTodos() {
+        List<EntityModel<PagoResponseDTO>> pagos = pagoService.obtenerTodos().stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(CollectionModel.of(pagos,
+                linkTo(methodOn(PagoController.class).obtenerTodos()).withSelfRel()));
     }
 
     @Operation(summary = "OBTENER PAGO POR ID", description = "Retorna un pago específico por su ID. Acceso: ADMIN, CLIENTE")
@@ -55,8 +73,8 @@ public class PagoController {
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
     @GetMapping("/{id}")
-    public ResponseEntity<PagoResponseDTO> obtenerPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(pagoService.obtenerPorId(id));
+    public ResponseEntity<EntityModel<PagoResponseDTO>> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(assembler.toModel(pagoService.obtenerPorId(id)));
     }
 
     @Operation(summary = "OBTENER PAGOS POR CLIENTE", description = "Retorna todos los pagos de un cliente. Acceso: ADMIN, CLIENTE")
@@ -66,8 +84,13 @@ public class PagoController {
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE')")
     @GetMapping("/cliente/{clienteId}")
-    public ResponseEntity<List<PagoResponseDTO>> obtenerPorCliente(@PathVariable Long clienteId) {
-        return ResponseEntity.ok(pagoService.obtenerPorCliente(clienteId));
+    public ResponseEntity<CollectionModel<EntityModel<PagoResponseDTO>>> obtenerPorCliente(@PathVariable Long clienteId) {
+        List<EntityModel<PagoResponseDTO>> pagos = pagoService.obtenerPorCliente(clienteId).stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(CollectionModel.of(pagos,
+                linkTo(methodOn(PagoController.class).obtenerPorCliente(clienteId)).withSelfRel()));
     }
 
     @Operation(summary = "OBTENER PAGOS POR ESTADO", description = "Retorna pagos filtrados por estado (PENDIENTE, COMPLETADO, FALLIDO). Acceso: ADMIN")
@@ -77,8 +100,13 @@ public class PagoController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/estado/{estado}")
-    public ResponseEntity<List<PagoResponseDTO>> obtenerPorEstado(@PathVariable String estado) {
-        return ResponseEntity.ok(pagoService.obtenerPorEstado(estado));
+    public ResponseEntity<CollectionModel<EntityModel<PagoResponseDTO>>> obtenerPorEstado(@PathVariable String estado) {
+        List<EntityModel<PagoResponseDTO>> pagos = pagoService.obtenerPorEstado(estado).stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(CollectionModel.of(pagos,
+                linkTo(methodOn(PagoController.class).obtenerPorEstado(estado)).withSelfRel()));
     }
 
     @Operation(summary = "ACTUALIZAR PAGO", description = "Actualiza un pago existente. Acceso: ADMIN")
@@ -89,10 +117,10 @@ public class PagoController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<PagoResponseDTO> actualizar(
+    public ResponseEntity<EntityModel<PagoResponseDTO>> actualizar(
             @PathVariable Long id,
             @Valid @RequestBody PagoRequestDTO requestDTO) {
-        return ResponseEntity.ok(pagoService.actualizar(id, requestDTO));
+        return ResponseEntity.ok(assembler.toModel(pagoService.actualizar(id, requestDTO)));
     }
 
     @Operation(summary = "ELIMINAR PAGO", description = "Elimina un pago por su ID. Acceso: ADMIN")
