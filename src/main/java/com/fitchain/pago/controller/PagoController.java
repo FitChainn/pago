@@ -135,9 +135,10 @@ public class PagoController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<PagoResponseDTO>> eliminar(@PathVariable Long id) {
         log.info("DELETE /v1/pagos/{} - ELIMINAR PAGO", id);
+        PagoResponseDTO pago = pagoService.obtenerPorId(id);
         pagoService.eliminar(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(assembler.toModel(pago));
     }
 }
